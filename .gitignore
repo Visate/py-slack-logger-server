@@ -1,0 +1,18 @@
+# Python stuffs
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.so
+
+.python-version
+
+.env
+.venv
+env/
+venv/
+
+config.py
+
+*.swp
+
