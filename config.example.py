@@ -1,6 +1,7 @@
 slack = {"client_id": "",
          "secret": "",
          "signature": "",
+         "verification_token": "",
          "team_id": "",
          "workspace_token": ""}
 

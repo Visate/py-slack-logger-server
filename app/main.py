@@ -5,7 +5,7 @@ import logging
 import sys
 
 # Logging setup
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("slack_logger")
 logger.setLevel(logging.DEBUG)
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.DEBUG)

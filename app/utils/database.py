@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, Collection
 from utils.config import mongo as config
 from urllib.parse import quote_plus
 
@@ -10,6 +10,11 @@ database = config['database']
 
 db_uri = f'mongodb://{username}:{password}@{address}/{database}'
 
+def close_connection(connection):
+    if isinstance(connection, Collection):
+        connection = connection.database
+    connection.client.close()
+
 def get_collection(name):
     # always returns a new MongoClient to ensure threadsafe
     return MongoClient(db_uri)[database][name]
@@ -17,10 +22,22 @@ def get_collection(name):
 def insert_document(document, collection_name):
     collection = get_collection(collection_name)
     collection.insert_one(document)
-    collection.close()
+    close_connection(collection)
+
+def find_document(search, collection_name):
+    collection = get_collection(collection_name)
+    result = collection.find_one(search)
+    close_connection(collection)
+    return result
+
+def update_document(search, update, collection_name):
+    collection = get_collection(collection_name)
+    collection.update_one(search, update)
+    close_connection(collection)
 
 def find_and_update_document(search, update, collection_name):
     collection = get_collection(collection_name)
-    collection.find_one_and_update(search, update)
-    collection.close()
+    result = collection.find_one_and_update(search, update)
+    close_connection(collection)
+    return result
 

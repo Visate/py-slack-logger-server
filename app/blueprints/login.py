@@ -6,7 +6,7 @@ from utils.id import generate_id
 from utils.config import slack as config
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("slack_logger")
 
 login = Blueprint('login', __name__)
 
