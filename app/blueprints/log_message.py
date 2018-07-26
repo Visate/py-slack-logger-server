@@ -2,6 +2,9 @@ from flask import Blueprint, request
 from utils import database
 from utils.config import slack as config
 import logging
+import time
+import hmac
+import hashlib
 
 logger = logging.getLogger("slack_logger")
 
@@ -9,9 +12,13 @@ log_message = Blueprint('log_message', __name__)
 
 @log_message.route('/log', methods=['POST'])
 def log():
-    req = request.get_json(force=True)
-    if not from_slack(req):
+    if not from_slack(request):
         abort(401)
+
+    req = request.get_json(force=True, silent=True)
+    if req is None:
+        logger.warn("Received unknown request.")
+        return
 
     logger.info("Received call from Slack Events API.")
     logger.info(req)
@@ -51,8 +58,16 @@ def log():
             return "OK"
 
 # Verify event is from Slack
-def from_slack(req):
-    return config['verification_token'] == req.get('token')
+def from_slack(request):
+    request_body = request.get_data(as_text=True)
+    timestamp = request.headers['X-Slack-Request-Timestamp']
+    if abs(time.time() - timestamp) > 5 * 60:
+        logger.warn("Timestamp is older than expected time delta.")
+        return False
+    signature_base = f'v0:{timestamp}:{request_body}'
+    generated_sig = 'v0=' + hmac.digest(bytes(config['signature'], 'utf-8'), bytes(signature_base, 'utf-8'), digestmod=hashlib.sha256).hexdigest()
+    slack_sig = request.headers['X-Slack-Signature']
+    return hmac.compare(generated_sig, slack_sig)
 
 # DB helpers
 def update_edited(edited_msg):
